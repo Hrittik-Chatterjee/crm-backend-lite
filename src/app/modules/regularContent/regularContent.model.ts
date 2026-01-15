@@ -73,13 +73,13 @@ const regularContentSchema = new Schema<IRegularContent>(
     assignedCD: {
       type: Schema.Types.ObjectId,
       ref: "User", // Reference to User model (Content Designer)
-      required: [true, "Content Designer assignment is required"],
+      required: false, // Optional - allows admin to create content without assigned designer
       index: true,
     },
     assignedCW: {
       type: Schema.Types.ObjectId,
       ref: "User", // Reference to User model (Content Writer)
-      required: [true, "Content Writer assignment is required"],
+      required: false, // Optional - allows admin to create content without assigned writer
       index: true,
     },
     assignedVE: {
