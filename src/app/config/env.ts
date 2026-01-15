@@ -12,6 +12,7 @@ interface EnvConfig {
   JWT_COOKIE_EXPIRES_IN: number;
   BCRYPT_SALT_ROUNDS: number;
   ENCRYPTION_KEY: string;
+  FRONTEND_URL: string;
 }
 
 const envVars: EnvConfig = {
@@ -23,6 +24,7 @@ const envVars: EnvConfig = {
   JWT_COOKIE_EXPIRES_IN: Number(process.env.JWT_COOKIE_EXPIRES_IN) || 2, // days
   BCRYPT_SALT_ROUNDS: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
 };
 
 // Validate required environment variables

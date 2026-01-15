@@ -5,16 +5,39 @@ import { seedSuperAdmin } from "./app/config/seed";
 
 let server: ReturnType<typeof app.listen>;
 
-async function startServer() {
+// Cache MongoDB connection for serverless
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) {
+    return;
+  }
+
   try {
-    // Connect to MongoDB
     await mongoose.connect(envVars.MONGO_URI);
+    isConnected = true;
     console.log("✅ Connected to MongoDB successfully");
 
     // Seed super admin user
     await seedSuperAdmin();
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error);
+    throw error;
+  }
+}
 
-    // Start the server
+// Connect to DB before handling requests (for serverless)
+app.use(async (_req, _res, next) => {
+  await connectDB();
+  next();
+});
+
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectDB();
+
+    // Start the server (only in non-serverless environment)
     server = app.listen(envVars.PORT, () => {
       console.log(`🚀 Server is running on port ${envVars.PORT}`);
       console.log(`🌍 Environment: ${envVars.NODE_ENV}`);
@@ -53,4 +76,10 @@ process.on("SIGTERM", () => {
   }
 });
 
-startServer();
+// Only start server if not in serverless environment (Vercel)
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+// Export for Vercel serverless
+export default app;
