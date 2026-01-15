@@ -64,11 +64,11 @@ const getAllBusinesses = async (user: any, query: Record<string, unknown>) => {
     }
   }
 
-  const businesses = await Business.find(filter)
-    .sort(sort)
-    .skip(skip)
-    .limit(Number(limit));
-  const total = await Business.countDocuments(filter);
+  // Run queries in parallel for better performance
+  const [businesses, total] = await Promise.all([
+    Business.find(filter).sort(sort).skip(skip).limit(Number(limit)),
+    Business.countDocuments(filter),
+  ]);
 
   // Decrypt passwords before returning
   const decryptedBusinesses = businesses.map((business) => {

@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
@@ -30,6 +31,7 @@ async function connectDB() {
 }
 
 // Middleware
+app.use(compression()); // Gzip compression for responses
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

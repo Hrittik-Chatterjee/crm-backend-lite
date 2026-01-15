@@ -312,13 +312,8 @@ const updateRegularContent = async (
 };
 
 const deleteRegularContent = async (id: string, user: any): Promise<void> => {
-  // First, get the content with populated fields before deleting
-  const content = await RegularContent.findById(id)
-    .populate("business", "businessName typeOfBusiness contactPerson")
-    .populate("addedBy", "username roles")
-    .populate("assignedCD", "username roles")
-    .populate("assignedCW", "username roles")
-    .populate("assignedVE", "username roles");
+  // Only fetch content without unnecessary populates - we just need the business ID
+  const content = await RegularContent.findById(id).select("business").lean();
 
   if (!content) {
     throw new AppError(StatusCodes.NOT_FOUND, "Regular content not found");
@@ -327,13 +322,7 @@ const deleteRegularContent = async (id: string, user: any): Promise<void> => {
   // Check authorization: Only users assigned to the business can delete
   // Super Admin and Admin can delete any content
   if (!user.roles.includes(UserRole.SUPER_ADMIN) && !user.roles.includes(UserRole.ADMIN)) {
-    // Get the business to check assignments
-    const businessId = typeof content.business === "string"
-      ? content.business
-      : (content.business as any)._id
-        ? (content.business as any)._id.toString()
-        : content.business.toString();
-
+    const businessId = content.business.toString();
     const business = await Business.findById(businessId);
 
     if (!business) {
