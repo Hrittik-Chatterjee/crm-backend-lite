@@ -1,12 +1,33 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
+import mongoose from "mongoose";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import notFound from "./middlewares/notFound";
 import router from "./routes";
 import envVars from "./config/env";
+import { seedSuperAdmin } from "./config/seed";
 
 const app: Application = express();
+
+// Cache MongoDB connection for serverless
+let isConnected = false;
+
+async function connectDB() {
+  if (isConnected) {
+    return;
+  }
+
+  try {
+    await mongoose.connect(envVars.MONGO_URI);
+    isConnected = true;
+    console.log("✅ Connected to MongoDB successfully");
+    await seedSuperAdmin();
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error);
+    throw error;
+  }
+}
 
 // Middleware
 app.use(express.json());
@@ -38,6 +59,12 @@ app.use(
     credentials: true,
   })
 );
+
+// Connect to DB before handling requests (for serverless)
+app.use(async (_req, _res, next) => {
+  await connectDB();
+  next();
+});
 
 // Health check route
 app.get("/", (_req: Request, res: Response) => {
