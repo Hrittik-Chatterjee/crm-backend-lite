@@ -49,7 +49,7 @@ export const checkAuth = (...requiredRoles: string[]) => {
 
       // Sliding session: Extend cookie on each request (only if token came from cookie)
       if (isFromCookie) {
-        const isProduction = envVars.NODE_ENV === "production";
+        const isProduction = envVars.NODE_ENV === "production" || !!process.env.VERCEL;
         const cookieOptions = {
           httpOnly: true,
           secure: isProduction,

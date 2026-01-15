@@ -8,8 +8,10 @@ import envVars from "../../config/env";
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthServices.login(req.body);
 
+  // Detect production: either NODE_ENV or running on Vercel/HTTPS
+  const isProduction = envVars.NODE_ENV === "production" || !!process.env.VERCEL;
+
   // Set JWT in httpOnly cookie
-  const isProduction = envVars.NODE_ENV === "production";
   const cookieOptions = {
     httpOnly: true, // Prevents JavaScript access (XSS protection)
     secure: isProduction, // HTTPS only in production
@@ -25,13 +27,16 @@ const login = catchAsync(async (req: Request, res: Response) => {
     message: "Login successful",
     data: {
       user: result.user,
+      token: result.token, // Also return token for mobile/fallback
     },
   });
 });
 
 const logout = catchAsync(async (_req: Request, res: Response) => {
+  // Detect production: either NODE_ENV or running on Vercel/HTTPS
+  const isProduction = envVars.NODE_ENV === "production" || !!process.env.VERCEL;
+
   // Clear the cookie with matching options
-  const isProduction = envVars.NODE_ENV === "production";
   res.cookie("token", "", {
     httpOnly: true,
     secure: isProduction,

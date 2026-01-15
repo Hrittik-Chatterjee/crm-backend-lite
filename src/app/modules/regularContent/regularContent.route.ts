@@ -58,16 +58,10 @@ router.patch(
   RegularContentControllers.updateRegularContent
 );
 
-// Delete regular content (all authenticated users, but only if assigned to the business)
+// Delete regular content (SUPER_ADMIN, ADMIN, and CONTENT_WRITER only)
 router.delete(
   "/:id",
-  checkAuth(
-    UserRole.SUPER_ADMIN,
-    UserRole.ADMIN,
-    UserRole.CONTENT_WRITER,
-    UserRole.CONTENT_DESIGNER,
-    UserRole.VIDEO_EDITOR
-  ),
+  checkAuth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONTENT_WRITER),
   RegularContentControllers.deleteRegularContent
 );
 

@@ -67,8 +67,7 @@ const syncTagsToBusiness = async (
     await Business.findByIdAndUpdate(businessId, { tags: updatedTags });
 
     console.log(
-      `✅ Synced ${newHashtags.length} new tag(s) to business ${
-        business.businessName
+      `✅ Synced ${newHashtags.length} new tag(s) to business ${business.businessName
       }: ${newHashtags.join(", ")}`
     );
   }
@@ -265,6 +264,20 @@ const updateRegularContent = async (
         "You are not authorized to update content for this business"
       );
     }
+
+    // Video Editors and Content Designers can only update the status field
+    if (
+      !user.roles.includes(UserRole.CONTENT_WRITER) &&
+      (user.roles.includes(UserRole.VIDEO_EDITOR) ||
+        user.roles.includes(UserRole.CONTENT_DESIGNER))
+    ) {
+      // Strip all fields except 'status'
+      const statusOnly: Partial<IRegularContent> = {};
+      if (payload.status !== undefined) {
+        statusOnly.status = payload.status;
+      }
+      payload = statusOnly;
+    }
   }
 
   // Update the content
@@ -289,8 +302,8 @@ const updateRegularContent = async (
         ? payload.business
         : payload.business.toString()
       : typeof existingContent.business === "string"
-      ? existingContent.business
-      : existingContent.business.toString();
+        ? existingContent.business
+        : existingContent.business.toString();
 
     await syncTagsToBusiness(businessId, payload.tags);
   }
@@ -318,8 +331,8 @@ const deleteRegularContent = async (id: string, user: any): Promise<void> => {
     const businessId = typeof content.business === "string"
       ? content.business
       : (content.business as any)._id
-      ? (content.business as any)._id.toString()
-      : content.business.toString();
+        ? (content.business as any)._id.toString()
+        : content.business.toString();
 
     const business = await Business.findById(businessId);
 
