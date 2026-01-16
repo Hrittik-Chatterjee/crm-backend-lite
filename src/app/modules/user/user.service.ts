@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
+import { Business } from "../business/business.model";
 
 const createUser = async (payload: Partial<IUser>): Promise<IUser> => {
   const existingUser = await User.findOne({ username: payload.username });
@@ -98,6 +99,20 @@ const deleteUser = async (id: string): Promise<void> => {
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
+
+  // Remove deleted user from all business assignments
+  await Business.updateMany(
+    { assignedCW: id },
+    { $pull: { assignedCW: id } }
+  );
+  await Business.updateMany(
+    { assignedCD: id },
+    { $pull: { assignedCD: id } }
+  );
+  await Business.updateMany(
+    { assignedVE: id },
+    { $pull: { assignedVE: id } }
+  );
 };
 
 const getUserProfile = async (userId: string): Promise<IUser | null> => {
