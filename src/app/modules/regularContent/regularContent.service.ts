@@ -151,20 +151,33 @@ const getAllRegularContents = async (
   }
 
   // Role-based filtering with contentType visibility
+  // For CD/VE: Show content from ALL businesses they are assigned to (not just content assigned to them)
   if (
     user &&
     !user.roles.includes(UserRole.SUPER_ADMIN) &&
     !user.roles.includes(UserRole.ADMIN) &&
     !user.roles.includes(UserRole.CONTENT_WRITER)
   ) {
-    // Content Designers: see only poster/both content assigned to them
+    // Content Designers: see poster/both content from businesses they are assigned to
     if (user.roles.includes(UserRole.CONTENT_DESIGNER)) {
-      filter.assignedCD = user.id;
+      // Find all businesses where this user is assigned as CD
+      const assignedBusinesses = await Business.find(
+        { assignedCD: user.id },
+        { _id: 1 }
+      ).lean();
+      const businessIds = assignedBusinesses.map((b) => b._id);
+      filter.business = { $in: businessIds };
       filter.contentType = { $in: ["poster", "both"] };
     }
-    // Video Editors: see only video/both content assigned to them
+    // Video Editors: see video/both content from businesses they are assigned to
     else if (user.roles.includes(UserRole.VIDEO_EDITOR)) {
-      filter.assignedVE = user.id;
+      // Find all businesses where this user is assigned as VE
+      const assignedBusinesses = await Business.find(
+        { assignedVE: user.id },
+        { _id: 1 }
+      ).lean();
+      const businessIds = assignedBusinesses.map((b) => b._id);
+      filter.business = { $in: businessIds };
       filter.contentType = { $in: ["video", "both"] };
     }
   }
